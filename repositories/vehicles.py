@@ -1,5 +1,5 @@
 from __future__ import annotations
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import selectinload
 from models import Vehicle
 from .base import BaseRepository
@@ -18,7 +18,10 @@ class VehicleRepository(BaseRepository):
         res = await self.session.execute(select(Vehicle).where(or_(Vehicle.plate_number.like(like), Vehicle.region.like(like), Vehicle.note.like(like))).order_by(Vehicle.updated_at.desc()).limit(limit))
         return list(res.scalars())
     async def all(self, offset: int = 0, limit: int = 10) -> list[Vehicle]:
-        res = await self.session.execute(select(Vehicle).order_by(Vehicle.updated_at.desc()).offset(offset).limit(limit))
+        res = await self.session.execute(select(Vehicle).order_by(Vehicle.plate_number, Vehicle.region).offset(offset).limit(limit))
         return list(res.scalars())
+    async def count(self) -> int:
+        res = await self.session.execute(select(func.count(Vehicle.id)))
+        return int(res.scalar() or 0)
     async def delete(self, vehicle: Vehicle) -> None:
         await self.session.delete(vehicle)

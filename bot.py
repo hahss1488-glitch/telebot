@@ -30,7 +30,7 @@ async def main() -> None:
     bot = Bot(settings.bot_token)
     dp = Dispatcher(storage=MemoryStorage())
     dp.update.middleware(DbSessionMiddleware(session_factory))
-    dp.include_routers(common.router, service.router, vehicles.router, items.router, reports.router)
+    dp.include_routers(common.router, reports.router, vehicles.router, items.router, service.router)
     logging.getLogger(__name__).info("Bot started")
     await dp.start_polling(bot)
 

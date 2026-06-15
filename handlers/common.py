@@ -11,8 +11,4 @@ router = Router()
 async def start(message: Message, session: AsyncSession) -> None:
     if message.from_user:
         await UserRepository(session).get_or_create(message.from_user)
-    await message.answer("Бот учёта обслуживания автомобилей готов к работе.", reply_markup=MAIN_MENU)
-
-@router.message(lambda m: m.text == "Настройки")
-async def settings(message: Message) -> None:
-    await message.answer("Настройки: заполните BOT_TOKEN в .env. Резервные копии выполняются еженедельно автоматически.")
+    await message.answer("Бот учёта обслуживания автомобилей готов к работе. Выберите действие в меню.", reply_markup=MAIN_MENU)
