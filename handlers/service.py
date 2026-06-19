@@ -25,7 +25,7 @@ async def show_work_keyboard(message: Message, state: FSMContext, session: Async
     status = "Создана карточка" if created else "Карточка найдена"
     await message.answer(f"{status}: {vehicle.plate_number}{vehicle.region}\nВыберите выполненные работы.", reply_markup=service_items_keyboard(items, set()))
 
-@router.message(F.text == "Добавить обслуживание")
+@router.message(F.text.in_({"Добавить обслуживание", "➕ Добавить обслуживание"}))
 async def add_service_start(message: Message, state: FSMContext) -> None:
     await state.clear(); await state.set_state(AddService.plate)
     await message.answer("Введите номер автомобиля.\nПримеры: Х360РУ797, ХРУ360797, 360ХРУ")

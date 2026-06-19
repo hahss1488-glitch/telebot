@@ -40,7 +40,7 @@ async def search_run(message: Message, state: FSMContext, session: AsyncSession)
     vehicles = await VehicleRepository(session).search(normalized)
     await send_search_results(message, vehicles)
 
-@router.message(F.text == "Все автомобили")
+@router.message(F.text.in_({"Все автомобили", "🚗 Автомобили"}))
 async def all_vehicles(message: Message, state: FSMContext, session: AsyncSession) -> None:
     await state.clear()
     total = await VehicleRepository(session).count()
