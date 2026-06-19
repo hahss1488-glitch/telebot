@@ -11,14 +11,15 @@ class VehicleRepository(BaseRepository):
         res = await self.session.execute(select(Vehicle).where(Vehicle.plate_number == plate, Vehicle.region == region))
         return res.scalar_one_or_none()
     async def create(self, plate: str, region: str, note: str | None = None) -> Vehicle:
-        vehicle = Vehicle(plate_number=plate, region=region, note=note)
+        vehicle = Vehicle(plate_number=plate, region=region, note=note, status="normal")
         self.session.add(vehicle); await self.session.flush(); return vehicle
     async def search(self, query: str, limit: int = 20) -> list[Vehicle]:
         like = f"%{query}%"
-        res = await self.session.execute(select(Vehicle).where(or_(Vehicle.plate_number.like(like), Vehicle.region.like(like), Vehicle.note.like(like))).order_by(Vehicle.updated_at.desc()).limit(limit))
+        full_number = Vehicle.plate_number + Vehicle.region
+        res = await self.session.execute(select(Vehicle).where(or_(Vehicle.plate_number.like(like), Vehicle.region.like(like), full_number.like(like), Vehicle.note.like(like))).order_by(Vehicle.updated_at.desc()).limit(limit))
         return list(res.scalars())
-    async def all(self, offset: int = 0, limit: int = 10) -> list[Vehicle]:
-        res = await self.session.execute(select(Vehicle).order_by(Vehicle.plate_number, Vehicle.region).offset(offset).limit(limit))
+    async def problematic(self, limit: int = 50) -> list[Vehicle]:
+        res = await self.session.execute(select(Vehicle).where(Vehicle.status == "problem").order_by(Vehicle.updated_at.desc()).limit(limit))
         return list(res.scalars())
     async def count(self) -> int:
         res = await self.session.execute(select(func.count(Vehicle.id)))

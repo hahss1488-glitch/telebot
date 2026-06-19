@@ -26,6 +26,7 @@ class Vehicle(Base):
     plate_number: Mapped[str] = mapped_column(String(32), index=True, nullable=False)
     region: Mapped[str] = mapped_column(String(8), index=True, nullable=False)
     note: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16), default="normal", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
     service_records: Mapped[list[ServiceRecord]] = relationship(back_populates="vehicle", cascade="all, delete-orphan")

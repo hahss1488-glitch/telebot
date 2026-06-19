@@ -11,3 +11,8 @@ router = Router()
 async def today_report(message: Message, state: FSMContext, session: AsyncSession) -> None:
     await state.clear()
     await message.answer(await ReportService(ServiceRecordRepository(session)).today_text())
+
+@router.message(F.text == "Отчёт за месяц")
+async def month_report(message: Message, state: FSMContext, session: AsyncSession) -> None:
+    await state.clear()
+    await message.answer(await ReportService(ServiceRecordRepository(session)).month_text())

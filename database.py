@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from sqlalchemy import event, text
+from sqlalchemy import event, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 from models import Base
@@ -23,5 +23,8 @@ def create_engine_and_session(database_url: str) -> tuple[AsyncEngine, async_ses
 async def init_db(engine: AsyncEngine) -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        columns = await conn.run_sync(lambda sync_conn: {col["name"] for col in inspect(sync_conn).get_columns("vehicles")})
+        if "status" not in columns:
+            await conn.execute(text("ALTER TABLE vehicles ADD COLUMN status VARCHAR(16) NOT NULL DEFAULT 'normal'"))
         await conn.execute(text("PRAGMA journal_mode=WAL"))
     logger.info("Database initialized")

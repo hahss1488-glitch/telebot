@@ -1,18 +1,33 @@
 from __future__ import annotations
 
-from math import ceil
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
 MAIN_MENU = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text="Добавить обслуживание"), KeyboardButton(text="Поиск автомобиля")],
-    [KeyboardButton(text="Все автомобили"), KeyboardButton(text="Отчёт за сегодня")],
+    [KeyboardButton(text="Добавить обслуживание"), KeyboardButton(text="Все автомобили")],
+    [KeyboardButton(text="Отчёт за сегодня"), KeyboardButton(text="Отчёт за месяц")],
     [KeyboardButton(text="Справочник замен")],
 ], resize_keyboard=True)
 
+def vehicle_status_text(status: str) -> str:
+    return "проблемные ТС 🔴" if status == "problem" else "нормальные ТС 🟢"
+
+def all_vehicles_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Поиск по номеру", callback_data="veh:search")],
+        [InlineKeyboardButton(text="Проблемные ТС 🔴", callback_data="veh:problems")],
+    ])
+
 def vehicle_card_keyboard(vehicle_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Добавить обслуживание", callback_data=f"svc:add:{vehicle_id}"), InlineKeyboardButton(text="История", callback_data=f"hist:{vehicle_id}:0")],
-        [InlineKeyboardButton(text="Изменить заметку", callback_data=f"veh:note:{vehicle_id}"), InlineKeyboardButton(text="Удалить автомобиль", callback_data=f"veh:del:{vehicle_id}")],
+        [InlineKeyboardButton(text="Список работ", callback_data=f"hist:list:{vehicle_id}:0")],
+        [InlineKeyboardButton(text="Изменить статус", callback_data=f"veh:status:{vehicle_id}"), InlineKeyboardButton(text="Изменить комментарий", callback_data=f"veh:note:{vehicle_id}")],
+        [InlineKeyboardButton(text="Добавить обслуживание", callback_data=f"svc:add:{vehicle_id}")],
+    ])
+
+def status_keyboard(vehicle_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="нормальные ТС 🟢", callback_data=f"veh:set_status:{vehicle_id}:normal")],
+        [InlineKeyboardButton(text="проблемные ТС 🔴", callback_data=f"veh:set_status:{vehicle_id}:problem")],
     ])
 
 def service_items_keyboard(items, selected: set[int], columns: int = 3) -> InlineKeyboardMarkup:
@@ -24,14 +39,17 @@ def service_items_keyboard(items, selected: set[int], columns: int = 3) -> Inlin
     ])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
-def compact_vehicle_list_keyboard(vehicles, page: int, page_size: int, total: int) -> InlineKeyboardMarkup:
-    rows = [[InlineKeyboardButton(text=f"{v.plate_number} {v.region}", callback_data=f"veh:open:{v.id}")] for v in vehicles]
-    pages = max(1, ceil(total / page_size))
-    nav = []
-    if page > 0:
-        nav.append(InlineKeyboardButton(text="Назад", callback_data=f"veh:list:{page - 1}"))
-    if page + 1 < pages:
-        nav.append(InlineKeyboardButton(text="Дальше", callback_data=f"veh:list:{page + 1}"))
-    if nav:
-        rows.append(nav)
+def compact_vehicle_list_keyboard(vehicles) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=f"{v.plate_number}{v.region}", callback_data=f"veh:open:{v.id}")] for v in vehicles
+    ])
+
+def region_missing_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Добавить без региона", callback_data="svc:no_region")],
+    ])
+
+def records_dates_keyboard(records, vehicle_id: int) -> InlineKeyboardMarkup:
+    rows = [[InlineKeyboardButton(text=f"{r.service_date:%d.%m.%Y}", callback_data=f"hist:record:{r.id}")] for r in records]
+    rows.append([InlineKeyboardButton(text="Назад к карточке", callback_data=f"veh:open:{vehicle_id}")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
